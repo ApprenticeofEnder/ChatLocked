@@ -1,0 +1,35 @@
+
+> client@0.1.0 tauri /home/ender/Documents/Projects/ChatLogged/client
+> tauri "info"
+
+
+[✔] Environment
+    - OS: Linux Mint 21.3.0 x86_64 (X64)
+    ✔ webkit2gtk-4.1: 2.46.3
+    ✔ rsvg2: 2.52.5
+    ✔ rustc: 1.83.0 (90b35a623 2024-11-26)
+    ✔ cargo: 1.83.0 (5ffbef321 2024-10-29)
+    ✔ rustup: 1.27.1 (54dd3d00f 2024-04-24)
+    ✔ Rust toolchain: stable-x86_64-unknown-linux-gnu (default)
+    - node: 20.11.0
+    - pnpm: 9.0.5
+    - npm: 10.2.4
+
+[-] Packages
+    - tauri 🦀: 2.1.1
+    - tauri-build 🦀: 2.0.3
+    - wry 🦀: 0.47.2
+    - tao 🦀: 0.30.8
+    - tauri-cli 🦀: 1.5.12
+    - @tauri-apps/api : 2.1.1
+    - @tauri-apps/cli : 2.1.0
+
+[-] Plugins
+
+[-] App
+    - build-type: bundle
+    - CSP: unset
+    - frontendDist: ../build
+    - devUrl: http://localhost:1420/
+    - framework: Svelte
+    - bundler: Vite

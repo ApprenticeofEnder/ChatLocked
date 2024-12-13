@@ -1,0 +1,31 @@
+{
+    "name": "client",
+    "version": "0.1.0",
+    "description": "",
+    "main": "index.node",
+    "scripts": {
+        "dev": "pnpm run cargo-build && next dev",
+        "start": "pnpm run cargo-build:release -- && next start",
+        "test": "cd chatlock-rs && cargo test",
+        "cargo-build": "cd chatlock-rs && wasm-pack build --target web",
+        "cargo-build:release": "cd chatlock-rs && wasm-pack build --target web --release",
+        "cross-build": "cd chatlock-rs && wasm-pack build --target web --release",
+        "build": "pnpm run cargo-build:release -- && next build",
+        "cross": "pnpm run cross-build --",
+        "lint": "next lint"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "22.10.2",
+        "@types/react": "19.0.1",
+        "typescript": "5.7.2",
+        "wasm-pack": "^0.13.1"
+    },
+    "dependencies": {
+        "@huggingface/transformers": "^3.1.2",
+        "next": "^15.1.0",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0"
+    }
+}

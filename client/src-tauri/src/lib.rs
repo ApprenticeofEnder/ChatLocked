@@ -1,7 +1,14 @@
 use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
 use hex;
+use ironcore_alloy::{
+    standalone::config::{
+        RotatableSecret, StandaloneConfiguration, StandaloneSecret, StandardSecrets, VectorSecret,
+    },
+    vector::{PlaintextVector, VectorOps},
+    AlloyMetadata, DerivationPath, Secret, SecretPath, Standalone, TenantId,
+};
 use ring::{digest, pbkdf2, rand};
-use std::num::NonZeroU32;
+use std::{collections::HashMap, num::NonZeroU32};
 
 static PBKDF2_ALG: pbkdf2::Algorithm = pbkdf2::PBKDF2_HMAC_SHA512;
 const ENCRYPTION_KEY_LEN: usize = digest::SHA512_OUTPUT_LEN;
@@ -58,15 +65,26 @@ fn salt(username: &str, secret_key: &str) -> Vec<u8> {
 }
 
 #[tauri::command]
-fn create_key(state: tauri::State<AppState>, username: &str, password: &str, secret_key: &str) {
+fn create_key(
+    state: tauri::State<AppState>,
+    username: &str,
+    password: &str,
+    secret_key: &str,
+) -> String {
     let salt: Vec<u8> = salt(username, secret_key);
     let mut key: EncryptionKey = [0u8; ENCRYPTION_KEY_LEN];
-    pbkdf2::derive(PBKDF2_ALG, state.keygen_config.pbkdf2_iterations, &salt, password.as_bytes(), &mut key);
-    println!("{}", hex::encode(key))
+    pbkdf2::derive(
+        PBKDF2_ALG,
+        state.keygen_config.pbkdf2_iterations,
+        &salt,
+        password.as_bytes(),
+        &mut key,
+    );
+    hex::encode(key)
 }
 
 #[tauri::command]
-fn embed_string(text: &str) -> String {
+fn embed_string(text: &str) -> Vec<Vec<f32>> {
     let model = TextEmbedding::try_new(
         InitOptions::new(EmbeddingModel::AllMiniLML6V2).with_show_download_progress(true),
     )
@@ -74,7 +92,59 @@ fn embed_string(text: &str) -> String {
 
     let embeddings = model.embed(vec![text], None).unwrap();
     println!("Embedding dimension: {}", embeddings[0].len());
-    String::from("Hello")
+    embeddings
+}
+
+#[tauri::command]
+async fn encrypt_embeddings(embeddings: Vec<Vec<f32>>, key: &str) -> Result<Vec<Vec<f32>>, ()> {
+    let secret_path = SecretPath("key".into());
+    let derivation_path = DerivationPath("sentence".into());
+    let config = StandaloneConfiguration::new(
+        StandardSecrets::new(
+            Some(1),
+            vec![StandaloneSecret::new(
+                1,
+                Secret::new(hex::decode(key).unwrap()).unwrap(),
+            )],
+        )
+        .unwrap(),
+        HashMap::new(),
+        HashMap::from([(
+            secret_path.clone(),
+            VectorSecret::new(
+                2.0,
+                RotatableSecret::new(
+                    Some(StandaloneSecret::new(
+                        1,
+                        Secret::new(hex::decode(key).unwrap()).unwrap(),
+                    )),
+                    None,
+                )
+                .unwrap(),
+            ),
+        )]),
+    );
+
+    let standalone = Standalone::new(&config);
+
+    let mut encrypted_vectors: Vec<Vec<f32>> = Vec::new();
+
+    for embedding in embeddings {
+        let plaintext_vector = PlaintextVector {
+            plaintext_vector: embedding.clone(),
+            secret_path: secret_path.clone(),
+            derivation_path: derivation_path.clone(),
+        };
+
+        let metadata = AlloyMetadata::new_simple(TenantId("Personal".into()));
+
+        let encrypted_vector = standalone.vector().encrypt(plaintext_vector, &metadata).await.unwrap();
+        encrypted_vectors.push(encrypted_vector.encrypted_vector);
+    }
+
+    let encrypted_vectors: Vec<Vec<f32>> = encrypted_vectors;
+
+    Ok(encrypted_vectors)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -89,6 +159,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             embed_string,
+            encrypt_embeddings,
             generate_secret_key,
             create_key
         ])

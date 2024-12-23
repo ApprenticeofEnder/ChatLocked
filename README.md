@@ -1,3 +1,3 @@
 # ChatLocked
 
-This project is a work in progress.
+The better way to search through your chat history, privately.

@@ -13,12 +13,12 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@hookform/resolvers": "^3.9.1",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.468.0",
-    "tailwind-merge": "^2.5.5",
+    "lucide-svelte": "^0.469.0",
+    "react-hook-form": "^7.54.2",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
@@ -27,12 +27,19 @@
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@tauri-apps/cli": "^2",
     "autoprefixer": "^10.4.20",
+    "bits-ui": "^0.22.0",
+    "clsx": "^2.1.1",
+    "formsnap": "1.0.1",
     "postcss": "^8.4.49",
     "postcss-nesting": "^13.0.1",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
+    "sveltekit-superforms": "^2.22.1",
+    "tailwind-merge": "^2.5.5",
+    "tailwind-variants": "^0.3.0",
     "tailwindcss": "^3.4.16",
     "typescript": "~5.6.2",
-    "vite": "^6.0.3"
+    "vite": "^6.0.3",
+    "zod": "^3.24.1"
   }
 }

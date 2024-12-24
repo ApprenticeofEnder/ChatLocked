@@ -8,10 +8,10 @@ use ironcore_alloy::{
     AlloyMetadata, DerivationPath, Secret, SecretPath, Standalone, TenantId,
 };
 use ring::{digest, pbkdf2, rand};
-use std::{collections::HashMap, num::NonZeroU32};
+use std::{collections::HashMap, num::NonZeroU32, sync::Arc};
 
 static PBKDF2_ALG: pbkdf2::Algorithm = pbkdf2::PBKDF2_HMAC_SHA512;
-const ENCRYPTION_KEY_LEN: usize = digest::SHA512_OUTPUT_LEN;
+const ENCRYPTION_KEY_LEN: usize = digest::SHA256_OUTPUT_LEN;
 const SALT_LEN: usize = ENCRYPTION_KEY_LEN / 2;
 pub type EncryptionKey = [u8; ENCRYPTION_KEY_LEN];
 pub type SecretKey = [u8; SALT_LEN];
@@ -99,7 +99,7 @@ fn embed_string(text: &str) -> Vec<Vec<f32>> {
 async fn encrypt_embeddings(embeddings: Vec<Vec<f32>>, key: &str) -> Result<Vec<Vec<f32>>, ()> {
     let secret_path = SecretPath("key".into());
     let derivation_path = DerivationPath("sentence".into());
-    let config = StandaloneConfiguration::new(
+    let config: Arc<StandaloneConfiguration> = StandaloneConfiguration::new(
         StandardSecrets::new(
             Some(1),
             vec![StandaloneSecret::new(
@@ -125,7 +125,7 @@ async fn encrypt_embeddings(embeddings: Vec<Vec<f32>>, key: &str) -> Result<Vec<
         )]),
     );
 
-    let standalone = Standalone::new(&config);
+    let standalone: Arc<Standalone> = Standalone::new(&config);
 
     let mut encrypted_vectors: Vec<Vec<f32>> = Vec::new();
 
@@ -136,9 +136,13 @@ async fn encrypt_embeddings(embeddings: Vec<Vec<f32>>, key: &str) -> Result<Vec<
             derivation_path: derivation_path.clone(),
         };
 
-        let metadata = AlloyMetadata::new_simple(TenantId("Personal".into()));
+        let metadata: Arc<AlloyMetadata> = AlloyMetadata::new_simple(TenantId("Personal".into()));
 
-        let encrypted_vector = standalone.vector().encrypt(plaintext_vector, &metadata).await.unwrap();
+        let encrypted_vector = standalone
+            .vector()
+            .encrypt(plaintext_vector, &metadata)
+            .await
+            .unwrap();
         encrypted_vectors.push(encrypted_vector.encrypted_vector);
     }
 

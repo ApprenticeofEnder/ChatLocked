@@ -11,6 +11,11 @@
             return;
         }
         console.log(email, password, secretKey);
+        window.localStorage.setItem("secretKey", secretKey);
+        window.localStorage.setItem("email", email);
+        // Store the secret key in localStorage
+        // Create an actual encryption key
+        // Or maybe just an encryption key for the actual key?
     })
 
 </script>

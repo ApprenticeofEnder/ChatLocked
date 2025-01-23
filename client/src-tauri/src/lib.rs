@@ -65,13 +65,13 @@ fn salt(username: &str, secret_key: &str) -> Vec<u8> {
 }
 
 #[tauri::command]
-fn create_key(
+fn create_encryption_key(
     state: tauri::State<AppState>,
-    username: &str,
+    email: &str,
     password: &str,
     secret_key: &str,
 ) -> String {
-    let salt: Vec<u8> = salt(username, secret_key);
+    let salt: Vec<u8> = salt(email, secret_key);
     let mut key: EncryptionKey = [0u8; ENCRYPTION_KEY_LEN];
     pbkdf2::derive(
         PBKDF2_ALG,
@@ -90,7 +90,7 @@ fn embed_string(text: &str) -> Vec<Vec<f32>> {
     )
     .unwrap();
 
-    let embeddings = model.embed(vec![text], None).unwrap();
+    let embeddings: Vec<Vec<f32>> = model.embed(vec![text], None).unwrap();
     println!("Embedding dimension: {}", embeddings[0].len());
     embeddings
 }
@@ -165,7 +165,7 @@ pub fn run() {
             embed_string,
             encrypt_embeddings,
             generate_secret_key,
-            create_key
+            create_encryption_key
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

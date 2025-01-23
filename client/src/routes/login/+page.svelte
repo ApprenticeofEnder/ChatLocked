@@ -2,16 +2,24 @@
     import { getContext } from 'svelte';
     import { core } from '@tauri-apps/api';
 
-    import SetupForm from '$lib/components/form/setup-form/setup-form.svelte';
+    import LoginForm from '$lib/components/form/login-form/login-form.svelte';
     import { type KeyData } from '$lib/types';
+    import { goto } from '$app/navigation';
 
     let { data } = $props();
-    let email: string | null = $state(null);
+
+    const keyData: KeyData = getContext('keyData');
+
+    let email: string | null = $state(keyData.email);
     let password: string | null = $state(null);
-    let secretKey: string | null = $state(null);
+    let secretKey: string | null = $state(keyData.secretKey);
 
     $effect(() => {
-        if (!email || !password || !secretKey) {
+        if (!email || !secretKey) {
+            goto('/setup');
+        }
+
+        if (!password) {
             return;
         }
 
@@ -36,20 +44,9 @@
             window.localStorage.setItem('secretKey', secretKey || '');
             window.localStorage.setItem('email', email || '');
 
-            const keyData: KeyData = getContext('keyData');
-            keyData.email = email;
-            keyData.secretKey = secretKey;
             keyData.encryptionKey = encryptionKey;
         }
 
         processNewEncryptionKey(email, password, secretKey);
     });
 </script>
-
-<main>
-    <h1>ChatLocked Setup</h1>
-    <SetupForm data={data.form} bind:email bind:password bind:secretKey />
-    <p>Email: {email}</p>
-    <p>Password: {'*'.repeat(password?.length || 0)}</p>
-    <p>Secret Key: {secretKey}</p>
-</main>

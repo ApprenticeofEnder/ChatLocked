@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
+    import { goto } from '$app/navigation';
 
-  goto("/setup");
+    // Load email and secret key from local storage, if they don't exist, go to setup
+
+    goto('/setup');
 </script>
 
 <main>
-  <h1>ChatLocked</h1>
+    <h1>ChatLocked</h1>
 </main>

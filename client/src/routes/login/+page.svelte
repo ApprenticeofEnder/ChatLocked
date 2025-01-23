@@ -1,33 +1,38 @@
 <script lang="ts">
-    import { getContext } from 'svelte';
     import { core } from '@tauri-apps/api';
+    import { getContext } from 'svelte';
 
-    import LoginForm from '$lib/components/form/login-form/login-form.svelte';
-    import { type KeyData } from '$lib/types';
     import { goto } from '$app/navigation';
+    import LoginForm from '$lib/components/form/login-form/login-form.svelte';
+    import type { StrongholdContext } from '$lib/stores/stronghold';
+
+    const { stronghold }: StrongholdContext = getContext('stronghold');
 
     let { data } = $props();
 
-    const keyData: KeyData = getContext('keyData');
-
-    let email: string | null = $state(keyData.email);
     let password: string | null = $state(null);
-    let secretKey: string | null = $state(keyData.secretKey);
 
     $effect(() => {
-        if (!email || !secretKey) {
+        if (!window.localStorage.getItem('isSetup')) {
             goto('/setup');
+            return;
+        }
+
+        if (stronghold.isInitialized()) {
+            goto('/');
+            return;
         }
 
         if (!password) {
             return;
         }
 
-        async function processNewEncryptionKey(
-            email: string,
-            password: string,
-            secretKey: string
-        ) {
+        async function processLogin(password: string) {
+            await stronghold.init(password);
+
+            const email = await stronghold.getRecord('email');
+            const secretKey = await stronghold.getRecord('secretKey');
+
             const encryptionKey = await core.invoke<string | null>(
                 'create_encryption_key',
                 {
@@ -41,12 +46,15 @@
                     `Null encryption key. Email: ${email}. Secret Key: ${secretKey}.`
                 );
             }
-            window.localStorage.setItem('secretKey', secretKey || '');
-            window.localStorage.setItem('email', email || '');
 
-            keyData.encryptionKey = encryptionKey;
+            goto('/');
         }
 
-        processNewEncryptionKey(email, password, secretKey);
+        processLogin(password);
     });
 </script>
+
+<main>
+    <h1>ChatLocked Login</h1>
+    <LoginForm data={data.form} bind:password />
+</main>

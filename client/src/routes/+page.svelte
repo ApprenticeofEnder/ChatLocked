@@ -1,9 +1,26 @@
 <script lang="ts">
+    import { getContext } from 'svelte';
+
     import { goto } from '$app/navigation';
+    import type { StrongholdContext } from '$lib/stores/stronghold';
 
-    // Load email and secret key from local storage, if they don't exist, go to setup
+    const { stronghold }: StrongholdContext = getContext('stronghold');
 
-    goto('/setup');
+    $inspect(getContext('stronghold'));
+
+    $effect(() => {
+        if (stronghold.isInitialized()) {
+            return;
+        }
+
+        const isSetup = window.localStorage.getItem('isSetup');
+        if (!isSetup) {
+            goto('/setup');
+            return;
+        }
+
+        goto('/login');
+    });
 </script>
 
 <main>

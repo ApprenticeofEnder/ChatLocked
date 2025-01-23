@@ -1,9 +1,10 @@
-import type { PageServerLoad, Actions } from './$types.js';
 import { fail } from '@sveltejs/kit';
-
 import { superValidate } from 'sveltekit-superforms';
-import { loginFormSchema } from '$lib/components/form/login-form/schema';
 import { zod } from 'sveltekit-superforms/adapters';
+
+import { loginFormSchema } from '$lib/components/form/login-form/schema';
+
+import type { Actions, PageServerLoad } from './$types.js';
 
 export const load: PageServerLoad = async () => {
     return {

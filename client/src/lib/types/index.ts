@@ -1,1 +1,1 @@
-export * from '$lib/types/context.d';
+export * from '$lib/types/context';
